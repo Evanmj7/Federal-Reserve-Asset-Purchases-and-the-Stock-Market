@@ -1,0 +1,239 @@
+* initialize calendar, allocate space, and read in data
+calendar(m) 1900:1
+all 2025:4
+data(format=fred,org=columns) * * sp500 walcl fedfunds
+* Check that data imported correctly
+table(picture="*.##")
+*
+compute startdate = 2010:03
+compute enddate   = 2019:09
+compute forstart  = 2019:3
+compute forend    = 2020:12
+
+* graph the series together, see if they visually look cointegrated in any way
+graph(header="S&P 500 and Fed Asset Purchases",key=loright,overlay=line, ovcount=1) 2
+# sp500 2010:3 2020:1
+# walcl 2010:3 2020:1
+graph(header="S&P 500",key=loright, ovcount=1) 1
+# sp500 1990:3 2020:1
+graph(header="Total Fed Assets",key=loright, ovcount=1) 1
+# walcl 2002:3 2020:1
+graph(header="Federal Funds Rate and Total Fed Assets",key=loright, overlay=line,ovcount=1) 2
+# fedfunds 2002:3 2020:1
+# walcl 2002:3 2020:1
+
+* dickey-fuller test for unit roots.
+@dfunit(det=trend,method=aic) sp500 startdate enddate
+@dfunit(det=trend,method=aic) walcl startdate enddate
+* sp500 does not have a unit root, asset purchases do
+
+* test for cointegration
+@egtestresids(maxlags=10,method=aic,det=none) resids startdate enddate
+* shows no cointegration
+* run a linear regression
+linreg(define=coint) sp500 startdate enddate resids
+#constant walcl
+
+@egtestresids(maxlags=10,method=aic,det=none) resids 1992:1 2020:1
+
+graph(header="Residuals of Cointegrated Relationship of Asset Purchases and S&P500") 1
+# resids startdate enddate
+
+set diffsp = sp500 - sp500{1}
+linreg(define=coint) diffsp startdate enddate resids
+#constant walcl
+
+
+@varlagselect(lags=24, crit=aic) startdate enddate
+# diffsp walcl
+* suggests a 2 month lag as best
+* look at error correction term EC1. It's significant, whihc means where htere is a
+* disequilibrium, interest rate shifts
+* inflation, EC is nonsignificant, so it doesn't move.
+* interest rate adjusts, inflation does not.
+* error correction tied to dependent variable of the regression
+*
+***error correction model***
+***
+system(model=cointex)
+variables walcl sp500
+lags 1 to 2
+det constant
+ect coint
+end(system)
+estimate startdate enddate
+*
+* looks like neither one of them granger causes the other
+compute implabel = ||"walcl","sp500"||
+@montevar(model=cointex,steps=25,varlabels=implabel,header="Impulse Response Functions")
+
+
+************* Graph
+forecast(model=cointex,from=forstart,to=forend,results=fore1,stderrors=serrors1)
+set uppercon95 forstart forend = fore1(2) + %invnormal(0.975)*serrors1(2)
+set lowercon95 forstart forend = fore1(2) - %invnormal(0.975)*serrors1(2)
+set uppercon68 forstart forend = fore1(2) + %invnormal(0.841)*serrors1(2)
+set lowercon68 forstart forend = fore1(2) - %invnormal(0.841)*serrors1(2)
+*
+set upperinc95 forstart forend = fore1(1) + %invnormal(0.975)*serrors1(1)
+set lowerinc95 forstart forend = fore1(1) - %invnormal(0.975)*serrors1(1)
+set upperinc68 forstart forend = fore1(1) + %invnormal(0.841)*serrors1(1)
+set lowerinc68 forstart forend = fore1(1) - %invnormal(0.841)*serrors1(1)
+**
+***graph forecasts***
+
+**
+display fore1(2)
+display sp500
+compute forstart = 2019:8
+graph(style=line, header="S&P 500 Forecast", overlay=fan,ovcount=4,ovsame) 6
+# sp500 2016:1 2019:12
+# fore1(2) forstart forend 2
+# uppercon95 forstart forend 4
+# uppercon68 forstart forend
+# lowercon68 forstart forend
+# lowercon95 forstart forend
+*
+*
+graph( header="Fed Asset Purchasing Forecast", overlay=fan,ovcount=4,ovsame) 6
+# walcl 2016:1 forend
+# fore1(1) forstart forend 2
+# upperinc95 forstart forend 4
+# upperinc68 forstart forend
+# lowerinc68 forstart forend
+# lowerinc95 forstart forend
+**
+set logsp = log(sp500)
+set logwa = log(walcl)
+
+linreg(define=logcoint) logwa startdate enddate residslog
+#constant logsp
+*
+
+@egtestresids(maxlags=10,method=aic,det=none) residslog 1992:1 2020:1
+
+graph(header="Residuals of Cointegrated Relationship of Asset Purchases and S&P500") 1
+# residslog startdate enddate
+
+@varlagselect(lags=24, crit=aic) startdate enddate
+#logsp logwa
+
+system(model=logcointex)
+variables logwa logsp
+lags 1 to 2
+det constant
+ect logcoint
+end(system)
+estimate startdate enddate
+*
+* looks like neither one of them granger causes the other
+compute implabel = ||"log walcl","log sp500"||
+@montevar(model=logcointex,steps=25,varlabels=implabel,header="Logarithmic Impulse Response Functions")
+
+**************************************** trend comparison
+
+* Create the basic trend model
+set trend = t
+linreg sp500 startdate enddate resids1
+# constant trend
+
+uforecast(stderrs=errors1,from=forstart-10,to=forend) fore4
+set forupper forstart-10 forend = fore4+1.96*errors1
+set forlower forstart-10 forend = fore4-1.96*errors1
+
+graph(style=line,header="S&P500 Forecast", $
+   subheader="Basic Trend Model",overlay=fan, ovcount=2, ovsame) 4
+# sp500 startdate forend
+# fore4 forstart-10 forend
+# forupper forstart-10 forend 3
+# forlower forstart-10 forend 3
+
+linreg walcl startdate enddate resids2
+# constant trend
+
+uforecast(stderrs=errors1,from=forstart-10,to=forend) fore3
+set forupper forstart-10 forend = fore3+1.96*errors1
+set forlower forstart-10 forend = fore3-1.96*errors1
+
+graph(style=line,header="Fed Asset Purchases Forecast", $
+   subheader="Basic Trend Model",overlay=fan, ovcount=2, ovsame) 4
+# walcl startdate forend
+# fore3 forstart-10 forend
+# forupper forstart-10 forend 3
+# forlower forstart-10 forend 3
+
+
+
+*********************** Testing weekly data results
+calendar(m) 1900:01
+all 2025:01
+data(format=fred,org=columns) * * sp500 walcl fedfunds PAYEMS temphelps dpic96 pcecc96
+*
+table(picture="*.##")
+
+linreg(define=coint) temphelps 1992:1 2020:1 resids
+#constant payems
+*
+
+@egtestresids(maxlags=10,method=aic,det=none) resids 1992:1 2020:1
+
+graph(header="residuals of cointegrationg relationship") 1
+# resids 1960:1 2018:1
+
+
+@varlagselect(lags=24, crit=aic) startdate enddate
+# sp500 walcl
+* suggests a 2 month lag as best
+
+***error correction model***
+***
+system(model=cointex)
+variables walcl sp500
+lags 1 to 2
+det constant
+ect coint
+end(system)
+estimate startdate enddate
+*
+* looks like neither one of them granger causes the other
+
+* Create monte carlo experiment to investigate the effect of a shock to one variable on the other
+compute implabel = ||"walcl","sp500"||
+@montevar(model=cointex,steps=25,varlabels=implabel,header="impulse response functions")
+
+
+************* Graph
+forecast(model=cointex,from=forstart,to=forend,results=fore1,stderrors=serrors1)
+set uppercon95 forstart forend = fore1(2) + %invnormal(0.975)*serrors1(2)
+set lowercon95 forstart forend = fore1(2) - %invnormal(0.975)*serrors1(2)
+set uppercon68 forstart forend = fore1(2) + %invnormal(0.841)*serrors1(2)
+set lowercon68 forstart forend = fore1(2) - %invnormal(0.841)*serrors1(2)
+*
+set upperinc95 forstart forend = fore1(1) + %invnormal(0.975)*serrors1(1)
+set lowerinc95 forstart forend = fore1(1) - %invnormal(0.975)*serrors1(1)
+set upperinc68 forstart forend = fore1(1) + %invnormal(0.841)*serrors1(1)
+set lowerinc68 forstart forend = fore1(1) - %invnormal(0.841)*serrors1(1)
+**
+***graph forecasts***
+
+**
+display fore1(2)
+display sp500
+compute forstart = 2019:8
+graph(style=line, header="S&P 500 Forecast", overlay=fan,ovcount=4,ovsame) 6
+# sp500 2016:1 2019:12
+# fore1(2) forstart forend 2
+# uppercon95 forstart forend 4
+# uppercon68 forstart forend
+# lowercon68 forstart forend
+# lowercon95 forstart forend
+*
+*
+graph( header="Fed Asset Purchasing Forecast", overlay=fan,ovcount=4,ovsame) 6
+# walcl 2016:1 forend
+# fore1(1) forstart forend 2
+# upperinc95 forstart forend 4
+# upperinc68 forstart forend
+# lowerinc68 forstart forend
+# lowerinc95 forstart forend
+**
