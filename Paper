@@ -1,0 +1,101 @@
+Introduction
+Central banks are in charge of a nation’s monetary policy. Their stated goals vary by country, but in general they share similar goals of price stability and ensuring the welfare of their citizens. In the United States, the Federal Reserve has the stated goals of price stability (defined as 2% inflation per year), and maximal employment. Federal banks have a few powers available to them to achieve their stated goals. Again, using the Federal Reserve of the U.S. as an example, it has several monetary policies under its control. The two most notable of which are the ability to set the interest rate and the power to purchase assets via open market operations. For our purposes, we will focus on the Fed’s ability to purchase assets and its relation to the greater economy, specifically stock prices. 
+        	The purpose of asset purchases is to stimulate the economy by providing liquidity to banks, thus allowing them to lend more money. In general, this is done when the Fed has exhausted its ability to reduce the federal funds rate any lower (often constrained by zero). The graph below shows the Federal Funds rate over time along with the total amount of assets purchased by the Fed. These series are clearly linked, starting with the 2008 recession, where the Federal Reserve began purchasing assets in earnest. This large scale plan was done in combination with a drop of the target rate to near-zero levels because the Fed was fearful that manipulating the interest rates alone would be enough to stop the current freefall of the economy (The Impact of Quantitative Easing on Equity Prices).
+        	Looking once more at the graph above, it is clear that asset purchases began in the early 2000’s, with a steady increase until a huge change to the economy and Federal Reserve policy came in the midst of the 2008 financial crisis. During this time, the Federal Reserve drastically increased their purchasing of assets in an attempt to stimulate the economy and dampen the effects of the coming recession. Three major quantitative easing events took place in the aftermath of the recession. The first of which, Quantitative Easing 1 (QE1) began in late 2008. By March of 2009, the Federal Reserve held $1.75 trillion of these assets, which consisted of mortgage-backed securities, treasury notes, and other bank debts. After this point, the Fed halted their purchasing for a while, until late 2010 where it was reupped for QE2 with another $600 billion of asset purchases and QE3 in late 2012, where the Fed announced long term monthly asset purchases. This can be seen in the graph below as the steady increase up until 2015. In 2015, the Federal Reserve significantly reduced their asset purchases until once again reinstituting an asset buying program in September of 2019 (QE: A User’s Guide).
+	This last spike in asset purchases is a concern for some individuals, who believe these purchases were the primary reason for a boost to the stock market in October of 2019. Along with their announcement, the Federal Reserve made it clear that they are purchasing more assets in an attempt to clear up problems with the overnight lending market, not to provide a boost to the stock market (New York Times). Following an unforeseen spike in the interest rates in the overnight lending market to nearly 10%, the Fed acted quickly to offer daily repurchase (repo) agreements to banks. These repo agreements lasted longer than anticipated, which led to the announcement in October that the Federal Reserve will once again expand their balance sheet. CNBC said in a statement shortly afterward: “Powell says the Fed will start expanding its balance sheet ‘soon’ in response to funding issues.” Powell said: “This is not QE [quantitative easing]. In no sense is this QE.” This came along with an announcement that the Fed would buy $60 billion of treasury notes monthly for at least six months. Rather than shrinking repo operations, the Fed further increased their operations to $150 billion by December. Combined, these facts make some skeptical of the stock market rally in October of 2019. Sven Henrich of Marketwatch stated “This rally in 2019 and in the fourth quarter, in particular, is entirely the product of liquidity injections in the form of rate cuts and balance-sheet expansions.”
+ 	The graph above shows the S&P 500 (a stock index) over time in blue along with the Federal Reserve’s total assets in black. In October, the month in question, the S&P 500 rose 3.3% overall, and 5.5% from the low of the month. At first glance, it looks like these series are not cointegrated with one another inherently. That being said, it is still entirely possible that can have an effect on one another. Below we will investigate whether the boost to Fed asset purchases in October 2019 caused a rally in the stock market and whether these series are cointegrated.
+Methodology
+
+	First, we will run a linear regression of these series, with the S&P 500 series as the dependent variable. We will then analyze the residuals of the regression and run an Engle-Granger cointegration test on them. From this, we will select the optimal number of lags in the series validated via AIC. To further investigate the relationship between these variables, we will create simulated shocks via impulse response functions, and analyze the hypothetical response of stock market price to a shock in Fed asset purchases. Finally, we will create a Vector Error Correction model to predict what the S&P 500 and Fed Asset purchases would be using data before the Fed announced additional asset purchases. This will be used for comparison purposes to how the Fed’s assets changed as well as changes in the stock market. 
+
+Econometric Analysis and Results
+
+	A linear regression of the S&P 500 on Fed asset purchases yields the following:
+
+Linear Regression - Estimation by Least Squares
+Dependent Variable SP500
+Monthly Data From 2010:03 To 2019:09
+Usable Observations                       115
+Degrees of Freedom                        113
+Centered R^2                        0.6133496
+R-Bar^2                             0.6099279
+Log Likelihood                      -836.3469
+Durbin-Watson Statistic                0.0253
+
+    Variable                        Coeff      Std Error      T-Stat      Signif
+************************************************************************************
+1.  Constant                     -143.1754895  159.5721440     -0.89725  0.37149524
+2.  WALCL                           0.0005569    0.0000416     13.38856  0.00000000
+
+This indicates that there is some explanatory power within asset purchases for the stock market. However, this is done in a time frame where the stock market increased fairly consistently along with federal asset purchases, so the relationship needs to be viewed in light of that. Next, we will look at the residuals of the regression between these two variables (see below). Looking at these residuals makes it clear that these are not incredibly strongly related, since the linear regression first overestimates, then underestimates, then overestimates again. 
+
+
+	An Engle-Granger cointegration test (below) shows no cointegration between the two series, with a t-statistic that is not even marginally significant.
+Engle-Granger Cointegration Test
+Null is no cointegration (residual has unit root)
+Regression Run From 2010:12 to 2019:09
+Observations        107
+With 8 lags chosen from 10 by AIC
+No deterministic variables in cointegrating vector
+Critical Values from MacKinnon for 2 Variables
+
+Test Statistic  0.35706
+1%(**)         -3.39000
+5%(*)          -2.76000
+10%            -2.45000
+
+	Impulse response functions show us the effect of a simulated shock to one variable on another. Here, we will simulate a shock to Federal Reserve assets and look at the response of the stock market. We can see that a relatively small shock to Fed asset purchases leads to an increase over time. The reason for this is likely because once the Fed begins purchasing assets, they have a plan to do so for months or years to come. This has a small, initial effect on the S&P 500, which stays around the same over time although losing significance in the future. A shock to the S&P 500 is sustained over time, but has virtually no effect on the Fed’s purchasing behavior. In sum, this tells us that a shock to the Fed’s assets has a positive, but minor effect on the stock market. 
+Finally, we create a Vector Error Correction (VEC) model, which combines the capability of vector autocorrection and cointegration. First, we choose the number of lags in the system via AIC analysis (below). A two month lag has the best results.
+
+VAR Lag Selection
+Lags AICC
+   0 44.0808127
+   1 34.5457957
+   2 33.1362853*
+   3 33.1899329
+   4 33.2354483
+   5 33.2666599
+   6 33.3455799
+
+Then we create the system itself. The goal here is not to create an accurate forecast, but to create a forecast of how these markets may have behaved (based on historical data) if not for the increase in asset purchases. We will use historical data, starting in March of 2010, after the first round of quantitative easing and after the bottom of the recession. We will then create forecasts that begin in October of 2019, using only data from up to September 2019. If the series behave far differently than the model predicts, given 68% and 95% confidence intervals, we have some reason to think that the change by the Fed had an effect on the stock market. Below are the results of the VEC model.
+
+VAR/System - Estimation by Cointegrated Least Squares
+Monthly Data From 2010:03 To 2019:09
+Usable Observations                       113
+Skipped/Missing (from 115)                  2
+
+Dependent Variable WALCL
+Mean of Dependent Variable       13060.184956
+Std Error of Dependent Variable  41074.041141
+Standard Error of Estimate       18547.037592
+Sum of Squared Residuals          37495193776
+Durbin-Watson Statistic                1.9263
+
+    Variable                        Coeff      Std Error      T-Stat      Signif
+************************************************************************************
+1.  D_WALCL{1}                       0.906963     0.049789     18.21604  0.00000000
+2.  D_SP500{1}                     -49.472931    33.905818     -1.45913  0.14740570
+3.  Constant                      1922.720469  1895.104097      1.01457  0.31255646
+4.  EC1{1}                          -1.744236     6.009517     -0.29025  0.77217975
+
+Dependent Variable SP500
+Mean of Dependent Variable       15.795042562
+Std Error of Dependent Variable  53.230748681
+Standard Error of Estimate       53.779492575
+Sum of Squared Residuals         315253.48656
+Durbin-Watson Statistic                1.9318
+
+    Variable                        Coeff      Std Error      T-Stat      Signif
+************************************************************************************
+1.  D_WALCL{1}                    0.000026253  0.000144370      0.18185  0.85604209
+2.  D_SP500{1}                    0.074751866  0.098314229      0.76034  0.44869520
+3.  Constant                     14.283488427  5.495095170      2.59932  0.01063410
+4.  EC1{1}                        0.002561261  0.017425358      0.14698  0.88341560
+
+	The variable of interest here is the error correction term (called EC1{1}). This term is how much one term moves to accommodate the other in a cointegrated relationship. If one variable moves to accommodate a change in another, the variable will be significant. Here, neither of the error correction terms are significant (nor even close), indicating once more that these are not cointegrated. Moving forward with forecasts of these two series, we have the graphs below.
+
+	As we already knew, the forecast of the Fed’s asset purchases show that their behavior was not in line with historical norms. This forecast predicts a steady increase of asset purchases over time, more or less as an average of historical norms. Another forecast could be made that demonstrates a continuation of the decrease in assets seen from late-2017 to mid-2019 to make a similar point. This makes it clear that the actions of the Fed were rather drastic, falling clear out of the 95% confidence interval provided by the forecast. Looking at the S&P 500 forecast, we see that the jump after the Fed announced their purchasing plan falls out of the 68% confidence interval, but stays inside of the 95% confidence interval.
+
+Conclusions
+	It is clear that Federal Reserve asset purchases are not cointegrated with stock prices. However, this does not mean that they are entirely unrelated. As the impulse response functions demonstrate, an increase in asset purchases does have some effect on stock prices. While this effect is minor, it is significant at first. The forecast of the S&P 500 does indicate some irregularity in the increase in the index, since it lies outside of the 68% confidence interval. Whether this was driven by asset purchases or external forces is not immediately evident. However, the rest of our analyses, namely the cointegration tests, show that Fed asset purchases are not directly causing S&P prices (or vice versa). 
+	What I think is more likely than asset purchases driving stock prices directly is investors hearing signals from the Federal Reserve that they will be protected. The Fed, in recent years, has constantly reassured investors and consumers that they will take whatever action necessary to keep the economy stable. This is clearly evident by recent events from the Fed in response to the Coronavirus, including dropping the federal funds rate to essentially zero after clawing it up to just over 2% in early 2019. The Fed has also recently announced huge asset purchasing plans, buying treasuries, mortgage backed securities, and even municipal bonds. These were all done in an attempt to prevent a coronavirus related recession. The asset purchases of October 2019 may have had an effect on the stock market, but this effect was likely not through the asset purchases alone (which is why these series test so poorly for cointegration). The rally in October was not immediate, significant, or sustained enough to be caused directly by the Fed asset purchases. 
